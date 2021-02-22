@@ -7,7 +7,7 @@
 """
 from functools import wraps
 
-from flask import session
+from flask import session, g
 
 from models.user import User
 

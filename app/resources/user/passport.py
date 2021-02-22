@@ -16,7 +16,6 @@ from utils.decorators import login_required
 from utils.exception import DBError, DataError, DataExistError, ThirdError
 from utils.parser import check_mobile_type
 from utils.public_method import check_params, send_sms
-from utils.response_code import RET, error_map
 
 
 class ImgCodeResource(Resource):
@@ -71,7 +70,7 @@ class SMSCodeResource(Resource):
 
         redis.setex('sms:' + args['mobile'], SMS_CODE_EXPIRED_TIME, sms_code)  # 添加短信验证码到redis
 
-        return {'errno': RET.OK, 'errmsg': error_map[RET.OK]}
+        return 'ok'
 
 
 class RegisteredResource(Resource):
@@ -113,7 +112,7 @@ class RegisteredResource(Resource):
         session['name'] = user.nick_name
         session['mobile'] = user.mobile
 
-        return {'errno': RET.OK, 'errmsg': error_map[RET.OK]}
+        return 'ok'
 
 
 class LoginResource(Resource):
@@ -136,7 +135,7 @@ class LoginResource(Resource):
             session['name'] = user.nick_name
             session['mobile'] = user.mobile
 
-            return {'errno': RET.OK, 'errmsg': error_map[RET.OK]}
+            return 'ok'
 
         raise DataError('登录失败')
 
@@ -154,4 +153,4 @@ class LogoutResource(Resource):
         session.pop('name')
         session.pop('mobile')
 
-        return {'errno': RET.OK, 'errmsg': error_map[RET.OK]}
+        return 'ok'

@@ -1,8 +1,10 @@
 # -*- coding: utf_8 -*-
 # @Time     : 2020/11/23 9:57
 # @Author   : yuan hao
+"""
+在此定义所有错误码及错误提示
+"""
 
-# coding:utf-8
 
 class RET:
     OK = "0"
