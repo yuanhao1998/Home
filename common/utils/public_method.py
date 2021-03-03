@@ -75,6 +75,55 @@ def check_params(args, params_list):
         raise MissParamsError('参数缺失！')
 
 
+def encode_auth_token(user_id):
+    """
+    生成登陆token
+    :return:
+    """
+    import jwt
+    import time
+
+    from flask import current_app
+
+    headers = {
+        "alg": "HS256",
+        "typ": "JWT"
+    }
+
+    payload = {
+        "data": {
+            'user_id': user_id
+        },
+        "exp": int(time.time() + 60 * 30)
+    }
+
+    return jwt.encode(payload=payload, key=current_app.conf['SECRET_KEY'], algorithm='HS256', headers=headers).decode(
+        'utf-8')
+
+
+def decode_auth_token(auth_token):
+    """
+    验证Token
+    :param auth_token: token码
+    :return: integer|string
+    """
+    import jwt
+    from flask import current_app
+
+    try:
+        # payload = jwt.decode(auth_token, app.config.get('SECRET_KEY'), leeway=datetime.timedelta(seconds=10))
+        # 取消过期时间验证
+        payload = jwt.decode(auth_token, current_app.conf['SECRET_KEY'], options={'verify_exp': False})
+        if 'data' in payload and 'user_id' in payload['data']:
+            return payload
+        else:
+            raise jwt.InvalidTokenError
+    except jwt.ExpiredSignatureError:
+        return 'Token过期'
+    except jwt.InvalidTokenError:
+        return '无效Token'
+
+
 def send_sms(sms_code, mobile):
     """
     此方法用于发送短信验证码，使用腾讯云短信接口
@@ -84,9 +133,11 @@ def send_sms(sms_code, mobile):
     """
     from tencentcloud.common import credential
     from tencentcloud.sms.v20190711 import sms_client, models
+    from flask import current_app
 
     from utils.constants import TENCENT_SECRET_ID, TENCENT_SECRET_KEY, SMS_SDK_APPId, SMS_SIGN, SMS_TEMPLATE_ID, \
         SMS_CODE_EXPIRED_TIME_MINUTE
+    from utils.exception import ThirdError
 
     cred = credential.Credential(TENCENT_SECRET_ID, TENCENT_SECRET_KEY)
     client = sms_client.SmsClient(cred, "ap-guangzhou")
@@ -97,4 +148,16 @@ def send_sms(sms_code, mobile):
     req.TemplateID = SMS_TEMPLATE_ID
     req.TemplateParamSet = [sms_code, SMS_CODE_EXPIRED_TIME_MINUTE]
     result = client.SendSms(req)
-    return result
+
+    try:
+        res_list = eval(str(result)).get('SendStatusSet')
+        error_list = list()  # 发送失败列表
+        for res in res_list:
+            if res.get('Code') != 'Ok':
+                current_app.logger.error('发送注册验证短信失败：number:%s,error:%s' % (res.get('PhoneNumber'), res.get('Code')))
+                error_list.append(res.get('PhoneNumber'))
+    except TypeError:
+        current_app.logger.error('调用腾讯云发送短信接口失败')
+        raise ThirdError('发送失败')
+
+    return error_list

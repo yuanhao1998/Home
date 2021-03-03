@@ -30,7 +30,7 @@ def check_user(f):  # 检查用户，登录用户获取user，未登录user=None
 def login_required(f):  # 登录验证，校验是否登录，未登录抛出异常
     @wraps(f)
     def wrapper(*args, **kwargs):
-        from utils.exception import SessionError
+        from utils.exception import AuthError
 
         userid = session.get('id')
         if userid:
@@ -39,7 +39,7 @@ def login_required(f):  # 登录验证，校验是否登录，未登录抛出异
                 g.user = user
                 return f(*args, **kwargs)
 
-        raise SessionError()
+        raise AuthError()
 
     return wrapper
 
@@ -59,4 +59,3 @@ def user_redirect(f):  # 用户重定向，未登录用户重定向到首页
         return redirect('/')
 
     return wrapper
-

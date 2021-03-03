@@ -15,10 +15,12 @@ csrf = None
 def register_extensions(app):  # 注册组件
     from flask_migrate import Migrate, MigrateCommand
     from flask_script import Manager
-    from utils.public_method import import_class
-    from utils.minix_class import SQLAlchemyMinix
     from flask_wtf import CSRFProtect
     from redis import Redis
+
+    from utils.public_method import import_class
+    from utils.minix_class import SQLAlchemyMinix
+    from utils.converters import register_converters
 
     global db
     db = SQLAlchemyMinix(app)  # mysql,自定义读写分离
@@ -26,7 +28,6 @@ def register_extensions(app):  # 注册组件
     global redis
     redis = Redis(host='175.24.100.78', port=6379, password='yuan123hao', decode_responses=True)  # redis
 
-    from utils.converters import register_converters
     register_converters(app)  # 注册自定义路由转换器
 
     manager = Manager(app)
@@ -44,6 +45,21 @@ def register_bp(app):  # 注册蓝图
 
     app.register_blueprint(user_bp)
     app.register_blueprint(common_bp)
+
+
+def register_middleware(app):  # 注册中间件
+    from flask import request
+
+    from utils.middleware import cross_domain
+    from utils.middleware import login_required
+
+    @app.before_request
+    def before_request():
+        login_required(request)
+
+    @app.after_request
+    def after_request(response):
+        cross_domain(response, request)
 
 
 def create_flask_app(conf):  # 创建flask实例

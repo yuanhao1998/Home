@@ -15,7 +15,8 @@ from utils.constants import IMG_CODE_EXPIRED_TIME, SMS_CODE_EXPIRED_TIME
 from utils.decorators import login_required
 from utils.exception import DBError, DataError, DataExistError, ThirdError
 from utils.parser import check_mobile_type
-from utils.public_method import check_params, send_sms
+from utils.public_method import check_params, send_sms, encode_auth_token
+from utils.response_code import RET, error_map
 
 
 class ImgCodeResource(Resource):
@@ -65,8 +66,8 @@ class SMSCodeResource(Resource):
 
         sms_code = '%06d' % random.randint(0, 999999)
         sms_res = send_sms(sms_code, args['mobile'])  # 发送短信
-        if sms_res['SendStatusSet']['Code'] != 'Ok':
-            raise ThirdError()
+        if sms_res is not None:
+            raise ThirdError('发送失败')
 
         redis.setex('sms:' + args['mobile'], SMS_CODE_EXPIRED_TIME, sms_code)  # 添加短信验证码到redis
 
@@ -108,11 +109,10 @@ class RegisteredResource(Resource):
 
         redis.delete('sms:' + args['mobile'])
 
-        session['id'] = user.id
-        session['name'] = user.nick_name
-        session['mobile'] = user.mobile
-
-        return 'ok'
+        token = encode_auth_token(user.id)
+        response = make_response({'errno': RET.OK, 'errmsg': error_map[RET.OK]})
+        response.headers['Authorization'] = 'JWT ' + token
+        return response
 
 
 class LoginResource(Resource):
@@ -131,11 +131,10 @@ class LoginResource(Resource):
 
         user = User.query.filter(User.mobile == args['mobile']).first()
         if user and check_password_hash(user.password_hash, args['password'] + current_app.config['SECRET_KEY']):
-            session['id'] = user.id
-            session['name'] = user.nick_name
-            session['mobile'] = user.mobile
-
-            return 'ok'
+            token = encode_auth_token(user.id)
+            response = make_response({'errno': RET.OK, 'errmsg': error_map[RET.OK]})
+            response.headers['Authorization'] = 'JWT ' + token
+            return response
 
         raise DataError('登录失败')
 

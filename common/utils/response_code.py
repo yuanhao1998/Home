@@ -12,7 +12,7 @@ class RET:
     NODATA = "4002"
     DATAEXIST = "4003"
     DATAERR = "4004"
-    SESSIONERR = "4101"
+    AUTHERR = "4101"
     LOGINERR = "4102"
     PARAMERR = "4103"
     USERERR = "4104"
@@ -32,7 +32,7 @@ error_map = {
     RET.NODATA: u"无数据",
     RET.DATAEXIST: u"数据已存在",
     RET.DATAERR: u"数据错误",
-    RET.SESSIONERR: u"用户未登录",
+    RET.AUTHERR: u"用户未登录",
     RET.LOGINERR: u"用户登录失败",
     RET.PARAMERR: u"参数错误",
     RET.USERERR: u"用户不存在或未激活",

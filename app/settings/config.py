@@ -10,13 +10,13 @@ import logging
 
 class DevConfig:
     # mysql配置
-    SQLALCHEMY_DATABASE_URI = 'mysql://root:yuan123hao@cdb-dcn8l0ek.cd.tencentcdb.com:10172/blog'  # 连接地址
+    SQLALCHEMY_DATABASE_URI = 'mysql://root:yuan123hao@cdb-dcn8l0ek.cd.tencentcdb.com:10172/Home'  # 连接地址
     SQLALCHEMY_TRACK_MODIFICATIONS = False  # 是否追踪数据变化
     SQLALCHEMY_ECHO = False  # 是否打印底层执行的SQL
 
     SQLALCHEMY_BINDS = {
-        'master': 'mysql://root:yuan123hao@cdb-dcn8l0ek.cd.tencentcdb.com:10172/blog',
-        'slave': 'mysql://root:yuan123hao@cdb-dcn8l0ek.cd.tencentcdb.com:10172/blog'
+        'master': 'mysql://root:yuan123hao@cdb-dcn8l0ek.cd.tencentcdb.com:10172/Home',
+        'slave': 'mysql://root:yuan123hao@cdb-dcn8l0ek.cd.tencentcdb.com:10172/Home'
     }
 
     # redis配置
